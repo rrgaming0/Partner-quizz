@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Partner Compatibility & Rarity Quiz</title>
+  <title>Partner Rarity & Probability Calculator</title>
   <style>
     :root {
       --primary: #10b981;
@@ -19,225 +19,242 @@
     body { background-color: var(--bg); color: var(--text); padding: 20px 12px 100px 12px; line-height: 1.5; }
     .container { max-width: 680px; margin: 0 auto; }
     
-    /* Sticky Top Progress Bar */
-    .top-bar { position: sticky; top: 10px; z-index: 50; background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(10px); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: space-between; }
-    .progress-text { font-size: 0.85rem; font-weight: 600; color: #38bdf8; }
-    .progress-bar-bg { width: 50%; height: 8px; background: #0f172a; border-radius: 4px; overflow: hidden; }
-    .progress-bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #38bdf8, #10b981); transition: width 0.3s ease; }
+    /* Sticky Top Progress & Probability Bar */
+    .top-bar { position: sticky; top: 10px; z-index: 50; background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(10px); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 10px; }
+    
+    .stats-row { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 0.95rem; }
+    .progress-text { color: #94a3b8; font-size: 0.85rem; }
+    .probability-text { color: #10b981; font-size: 1.1rem; text-shadow: 0 0 10px rgba(16,185,129,0.4); transition: color 0.3s ease; }
+    
+    .progress-bar-bg { width: 100%; height: 10px; background: #0f172a; border-radius: 5px; overflow: hidden; position: relative; }
+    .progress-bar-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #10b981, #38bdf8); transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s ease; }
 
     header { text-align: center; margin-bottom: 24px; padding: 12px; }
-    header h1 { font-size: 1.7rem; background: linear-gradient(135deg, #38bdf8, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 6px; }
+    header h1 { font-size: 1.6rem; background: linear-gradient(135deg, #38bdf8, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
     header p { color: var(--text-muted); font-size: 0.9rem; }
-
-    .category-title { font-size: 1.1rem; color: #fbbf24; text-transform: uppercase; letter-spacing: 1px; margin: 28px 0 14px 0; border-bottom: 2px dashed rgba(251, 191, 36, 0.3); padding-bottom: 6px; font-weight: 700; }
     
     /* Dynamic Theme Question Cards */
-    .q-card { border-radius: 14px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid var(--border); transition: transform 0.2s ease; }
-    .q-text { font-weight: 700; font-size: 0.98rem; margin-bottom: 12px; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+    .q-card { border-radius: 14px; padding: 18px; margin-bottom: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid var(--border); transition: transform 0.2s ease; }
+    .q-text { font-weight: 700; font-size: 1.05rem; margin-bottom: 14px; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); line-height: 1.4; }
     
-    .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .btn-opt { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.15); color: var(--text); padding: 10px 12px; border-radius: 10px; font-size: 0.88rem; cursor: pointer; text-align: center; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 6px; }
-    .btn-opt:active { transform: scale(0.97); }
-    .btn-opt.selected { background: #10b981; color: #000; font-weight: 800; border-color: #10b981; box-shadow: 0 0 12px rgba(16, 185, 129, 0.5); }
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .btn-opt { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.15); color: var(--text); padding: 12px 14px; border-radius: 10px; font-size: 0.95rem; cursor: pointer; text-align: left; transition: all 0.2s ease; display: flex; align-items: center; gap: 10px; }
+    .btn-opt span.sticker { font-size: 1.2rem; }
+    .btn-opt:active { transform: scale(0.98); }
+    
+    /* Selected State */
+    .btn-opt.selected { background: rgba(255, 255, 255, 0.95); color: #000; font-weight: 700; border-color: #fff; box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); }
+    .btn-opt.selected-neutral { background: #3b82f6; color: #fff; font-weight: 700; border-color: #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); }
 
     .submit-btn { width: 100%; background: linear-gradient(135deg, #10b981, #059669); color: #000; font-weight: 800; font-size: 1.1rem; padding: 16px; border: none; border-radius: 12px; cursor: pointer; margin-top: 24px; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4); }
 
     #result-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 16px; z-index: 100; }
     .modal-content { background: var(--card-bg); border: 2px solid var(--primary); border-radius: 16px; padding: 28px; max-width: 480px; width: 100%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
-    .score-badge { font-size: 2.5rem; font-weight: 900; color: var(--primary); margin: 12px 0; }
-    .rarity-badge { font-size: 1.15rem; color: #38bdf8; margin-bottom: 16px; font-weight: 700; }
-    .close-btn { background: #334155; color: #fff; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 700; }
+    .score-badge { font-size: 3rem; font-weight: 900; color: var(--primary); margin: 12px 0; text-shadow: 0 0 20px rgba(16,185,129,0.3); }
+    .rarity-badge { font-size: 1.1rem; color: #facc15; margin-bottom: 16px; font-weight: 700; }
+    .close-btn { background: #334155; color: #fff; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; font-size: 1.05rem; }
   </style>
 </head>
 <body>
 
 <div class="container">
   <div class="top-bar">
-    <div class="progress-text" id="progress-text">Progress: 0 / 50</div>
+    <div class="stats-row">
+      <div class="progress-text" id="progress-text">Answered: 0 / 25</div>
+      <div class="probability-text" id="prob-text">Match Probability: 100%</div>
+    </div>
     <div class="progress-bar-bg">
-      <div class="progress-bar-fill" id="progress-fill"></div>
+      <div class="progress-bar-fill" id="prob-fill"></div>
     </div>
   </div>
 
   <header>
-    <h1>Partner Compatibility & Rarity Quiz</h1>
-    <p>Select your candidate's preferences across 50 key criteria.</p>
+    <h1>Ideal Partner Calculator</h1>
+    <p>Every strict preference lowers the chance of finding him in the real world. "Doesn't Matter" keeps your chances high!</p>
   </header>
 
   <form id="quiz-form">
     <div id="questions-container"></div>
-    <button type="button" class="submit-btn" onclick="calculateResults()">✨ Calculate Match & Rarity ✨</button>
+    <button type="button" class="submit-btn" onclick="calculateFinalResults()">✨ Reveal Final Verdict ✨</button>
   </form>
 </div>
 
 <div id="result-modal">
   <div class="modal-content">
-    <h2>🎉 Evaluation Complete 🎉</h2>
-    <div class="score-badge" id="match-score">0%</div>
-    <div class="rarity-badge" id="rarity-score">Candidate Rarity: Top 0%</div>
+    <h2>🎯 Final Assessment 🎯</h2>
+    <div class="score-badge" id="final-prob">100%</div>
+    <div class="rarity-badge" id="final-verdict">Realistic Expectations</div>
     <p id="result-desc" style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 24px;"></p>
-    <button class="close-btn" onclick="closeModal()">Close & Review</button>
+    <button class="close-btn" onclick="closeModal()">Review Answers</button>
   </div>
 </div>
 
 <script>
-// 10 Distinct Theme Gradients for Question Cards
+// Array of distinct, vibrant gradients for the 25 cards
 const themes = [
-  'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)', // Deep Indigo
-  'linear-gradient(135deg, #064e3b 0%, #047857 100%)', // Emerald Forest
-  'linear-gradient(135deg, #4c1d95 0%, #6d28d9 100%)', // Royal Purple
-  'linear-gradient(135deg, #7c2d12 0%, #c2410c 100%)', // Sunset Warmth
-  'linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%)', // Oceanic Blue
-  'linear-gradient(135deg, #831843 0%, #be185d 100%)', // Berry Velvet
-  'linear-gradient(135deg, #134e4a 0%, #0f766e 100%)', // Dark Teal
-  'linear-gradient(135deg, #311b92 0%, #4527a0 100%)', // Deep Violet
-  'linear-gradient(135deg, #374151 0%, #1f2937 100%)', // Slate Steel
-  'linear-gradient(135deg, #701a75 0%, #a21caf 100%)'  // Neon Fuchsia
+  'linear-gradient(135deg, #1e1b4b, #312e81)', 'linear-gradient(135deg, #064e3b, #047857)',
+  'linear-gradient(135deg, #4c1d95, #6d28d9)', 'linear-gradient(135deg, #7c2d12, #c2410c)',
+  'linear-gradient(135deg, #1e3a8a, #1d4ed8)', 'linear-gradient(135deg, #831843, #be185d)',
+  'linear-gradient(135deg, #134e4a, #0f766e)', 'linear-gradient(135deg, #311b92, #4527a0)',
+  'linear-gradient(135deg, #3f3f46, #27272a)', 'linear-gradient(135deg, #701a75, #a21caf)',
+  'linear-gradient(135deg, #0f172a, #1e293b)', 'linear-gradient(135deg, #581c87, #7e22ce)',
+  'linear-gradient(135deg, #7f1d1d, #b91c1c)', 'linear-gradient(135deg, #14532d, #15803d)',
+  'linear-gradient(135deg, #1e40af, #2563eb)', 'linear-gradient(135deg, #9d174d, #db2777)',
+  'linear-gradient(135deg, #065f46, #059669)', 'linear-gradient(135deg, #4338ca, #4f46e5)',
+  'linear-gradient(135deg, #b45309, #d97706)', 'linear-gradient(135deg, #0f766e, #0d9488)',
+  'linear-gradient(135deg, #86198f, #c026d3)', 'linear-gradient(135deg, #374151, #4b5563)',
+  'linear-gradient(135deg, #9f1239, #e11d48)', 'linear-gradient(135deg, #115e59, #0f766e)',
+  'linear-gradient(135deg, #4a044e, #86198f)'
 ];
 
+// p = penalty percentage (amount subtracted from 100%). Doesn't matter is always 0.
 const questions = [
-  // Pillar 1: Core Values
-  { cat: "Core Identity & Values", q: "1. Age Range preference alignment?", opts: [{t: "18 - 23", v: 3, s: "🎯"}, {t: "Other", v: 1, s: "🔄"}] },
-  { cat: "Core Identity & Values", q: "2. Cultural & Regional background fit?", opts: [{t: "Highly Aligned", v: 3, s: "🏡"}, {t: "Flexible", v: 1, s: "🌐"}] },
-  { cat: "Core Identity & Values", q: "3. Religious belief & practice level?", opts: [{t: "Devout / Traditional", v: 3, s: "🙏"}, {t: "Moderate", v: 1, s: "⚖️"}] },
-  { cat: "Core Identity & Values", q: "4. Personal integrity and truthfulness?", opts: [{t: "Absolute Priority", v: 3, s: "💎"}, {t: "Moderate", v: 1, s: "👍"}] },
-  { cat: "Core Identity & Values", q: "5. Respect for elders and family hierarchy?", opts: [{t: "Very High", v: 3, s: "👑"}, {t: "Moderate", v: 1, s: "🤝"}] },
-  { cat: "Core Identity & Values", q: "6. Temperament under high pressure?", opts: [{t: "Calm & Rational", v: 3, s: "🧘"}, {t: "Emotional", v: 1, s: "⚡"}] },
-  { cat: "Core Identity & Values", q: "7. View on traditional family structures?", opts: [{t: "Strong Support", v: 3, s: "🏰"}, {t: "Modern Fit", v: 1, s: "🏙️"}] },
-  { cat: "Core Identity & Values", q: "8. Pride in cultural heritage?", opts: [{t: "High Pride", v: 3, s: "🚩"}, {t: "Neutral", v: 1, s: "🏳️"}] },
-  { cat: "Core Identity & Values", q: "9. Long-term commitment mindset?", opts: [{t: "Marriage-focused", v: 3, s: "💍"}, {t: "Undecided", v: 0, s: "❓"}] },
-  { cat: "Core Identity & Values", q: "10. Humility and willingness to learn?", opts: [{t: "High Humility", v: 3, s: "🌱"}, {t: "Low Humility", v: 0, s: "🛑"}] },
-
-  // Pillar 2: Lifestyle
-  { cat: "Lifestyle & Fitness", q: "11. Alcohol consumption status?", opts: [{t: "Strict Non-Drinker", v: 3, s: "🚫🍷"}, {t: "Occasional / Yes", v: 0, s: "🥂"}] },
-  { cat: "Lifestyle & Fitness", q: "12. Smoking / Tobacco usage?", opts: [{t: "Strict Non-Smoker", v: 3, s: "🚭"}, {t: "Occasional / Yes", v: 0, s: "🚬"}] },
-  { cat: "Lifestyle & Fitness", q: "13. Dietary preferences?", opts: [{t: "Balanced / Healthy", v: 3, s: "🥗"}, {t: "Flexible", v: 2, s: "🍕"}] },
-  { cat: "Lifestyle & Fitness", q: "14. Daily sleeping routine?", opts: [{t: "Early Riser", v: 3, s: "🌅"}, {t: "Night Owl", v: 1, s: "🌙"}] },
-  { cat: "Lifestyle & Fitness", q: "15. Physical fitness discipline?", opts: [{t: "Active / Athlete", v: 3, s: "🏃‍♂️"}, {t: "Casual / Low", v: 1, s: "🛋️"}] },
-  { cat: "Lifestyle & Fitness", q: "16. Screen time & digital usage?", opts: [{t: "Disciplined", v: 3, s: "📱⚡"}, {t: "Excessive", v: 0, s: "📲💀"}] },
-  { cat: "Lifestyle & Fitness", q: "17. Punctuality and time management?", opts: [{t: "Very Punctual", v: 3, s: "⏰"}, {t: "Casual", v: 1, s: "⏳"}] },
-  { cat: "Lifestyle & Fitness", q: "18. Cleanliness and hygiene standards?", opts: [{t: "Strict & Orderly", v: 3, s: "✨"}, {t: "Moderate", v: 1, s: "🧹"}] },
-  { cat: "Lifestyle & Fitness", q: "19. Social circle preferences?", opts: [{t: "Close-knit Group", v: 3, s: "🛡️"}, {t: "Party / Extensive", v: 1, s: "🎉"}] },
-  { cat: "Lifestyle & Fitness", q: "20. Approach to personal health?", opts: [{t: "Conscious & Proactive", v: 3, s: "💪"}, {t: "Indulgent", v: 1, s: "🍔"}] },
-
-  // Pillar 3: Ambition
-  { cat: "Education & Financial Mindset", q: "21. Higher Education status?", opts: [{t: "Graduate / Pursuing", v: 3, s: "🎓"}, {t: "Secondary School", v: 2, s: "📚"}] },
-  { cat: "Education & Financial Mindset", q: "22. Career ambition level?", opts: [{t: "Highly Ambitious", v: 3, s: "🚀"}, {t: "Content / Low Drive", v: 1, s: "⚓"}] },
-  { cat: "Education & Financial Mindset", q: "23. Support for partner's career goals?", opts: [{t: "100% Supportive", v: 3, s: "🤝"}, {t: "Conditional", v: 1, s: "⚠️"}] },
-  { cat: "Education & Financial Mindset", q: "24. Saving & spending habits?", opts: [{t: "Disciplined Saver", v: 3, s: "🏦"}, {t: "High Spender", v: 0, s: "💸"}] },
-  { cat: "Education & Financial Mindset", q: "25. Openness to continuous learning?", opts: [{t: "High Openness", v: 3, s: "🧠"}, {t: "Resistant", v: 1, s: "🔒"}] },
-  { cat: "Education & Financial Mindset", q: "26. Problem-solving approach?", opts: [{t: "Solution-Oriented", v: 3, s: "🛠️"}, {t: "Blame-Oriented", v: 0, s: "👉"}] },
-  { cat: "Education & Financial Mindset", q: "27. Adaptability to new environments?", opts: [{t: "Highly Adaptable", v: 3, s: "🦅"}, {t: "Rigid", v: 1, s: "🧱"}] },
-  { cat: "Education & Financial Mindset", q: "28. Financial independence view?", opts: [{t: "Shared Responsibility", v: 3, s: "⚖️"}, {t: "Single Earner", v: 2, s: "👤"}] },
-  { cat: "Education & Financial Mindset", q: "29. Communication clarity?", opts: [{t: "Clear & Articulate", v: 3, s: "🗣️"}, {t: "Basic / Minimal", v: 1, s: "😶"}] },
-  { cat: "Education & Financial Mindset", q: "30. Goal achievement discipline?", opts: [{t: "Highly Consistent", v: 3, s: "🎯"}, {t: "Inconsistent", v: 1, s: "🎲"}] },
-
-  // Pillar 4: Interpersonal
-  { cat: "Family & Interpersonal Dynamics", q: "31. Relationship with own family?", opts: [{t: "Strong & Respectful", v: 3, s: "❤️"}, {t: "Strained", v: 1, s: "⚡"}] },
-  { cat: "Family & Interpersonal Dynamics", q: "32. Willingness to live near family?", opts: [{t: "Accommodating", v: 3, s: "🏡"}, {t: "Strictly Isolated", v: 1, s: "🚪"}] },
-  { cat: "Family & Interpersonal Dynamics", q: "33. Conflict resolution style?", opts: [{t: "Direct & Polite Talk", v: 3, s: "🕊️"}, {t: "Silent Treatment", v: 0, s: "❄️"}] },
-  { cat: "Family & Interpersonal Dynamics", q: "34. Empathy toward partner's struggles?", opts: [{t: "Very Empathetic", v: 3, s: "🤗"}, {t: "Indifferent", v: 0, s: "🗿"}] },
-  { cat: "Family & Interpersonal Dynamics", q: "35. Handling gossip & external influence?", opts: [{t: "Filters Objectively", v: 3, s: "🛡️"}, {t: "Easily Influenced", v: 0, s: "🍃"}] },
-  { cat: "Family & Interpersonal Dynamics", q: "36. Joint decision-making style?", opts: [{t: "Collaborative", v: 3, s: "🤝"}, {t: "One-Sided", v: 0, s: "👑"}] },
-  { cat: "Family & Interpersonal Dynamics", q: "37. Loyalty during difficult phases?", opts: [{t: "Unwavering", v: 3, s: "⚓"}, {t: "Uncertain", v: 0, s: "❓"}] },
-  { cat: "Family & Interpersonal Dynamics", q: "38. Hospitality toward guests?", opts: [{t: "Warm & Welcoming", v: 3, s: "☕"}, {t: "Reserved", v: 1, s: "😐"}] },
-  { cat: "Family & Interpersonal Dynamics", q: "39. Household responsibility sharing?", opts: [{t: "Cooperative", v: 3, s: "🧺"}, {t: "Rigid Roles", v: 1, s: "📌"}] },
-  { cat: "Family & Interpersonal Dynamics", q: "40. Emotional maturity level?", opts: [{t: "High Maturity", v: 3, s: "🌳"}, {t: "Immature / Reactive", v: 1, s: "🔥"}] },
-
-  // Pillar 5: Future & Dealbreakers
-  { cat: "Future Alignment & Dealbreakers", q: "41. Relocation readiness if required?", opts: [{t: "Flexible", v: 3, s: "🧳"}, {t: "Strictly Fixed", v: 0, s: "⚓"}] },
-  { cat: "Future Alignment & Dealbreakers", q: "42. Alignment on family planning timing?", opts: [{t: "Fully Aligned", v: 3, s: "👶"}, {t: "Conflicting", v: 0, s: "❌"}] },
-  { cat: "Future Alignment & Dealbreakers", q: "43. Personal growth attitude?", opts: [{t: "Proactive Together", v: 3, s: "🚀"}, {t: "Passive", v: 1, s: "🛑"}] },
-  { cat: "Future Alignment & Dealbreakers", q: "44. Legal disputes / record status?", opts: [{t: "Clean Record", v: 3, s: "📜✨"}, {t: "Issues Present", v: 0, s: "⚖️⚠️"}] },
-  { cat: "Future Alignment & Dealbreakers", q: "45. Unmanaged debt status?", opts: [{t: "Debt-free / Managed", v: 3, s: "💳✅"}, {t: "Unmanaged Debt", v: 0, s: "🚨"}] },
-  { cat: "Future Alignment & Dealbreakers", q: "46. Gambling / Speculative risks?", opts: [{t: "Zero Risk", v: 3, s: "🛑🎲"}, {t: "Occasional / High", v: 0, s: "🎰"}] },
-  { cat: "Future Alignment & Dealbreakers", q: "47. Patience with long-term goals?", opts: [{t: "Persistent & Patient", v: 3, s: "⏳"}, {t: "Short-tempered", v: 1, s: "💥"}] },
-  { cat: "Future Alignment & Dealbreakers", q: "48. Respect for personal privacy?", opts: [{t: "Healthy Boundaries", v: 3, s: "🔑"}, {t: "Overcontrolling", v: 0, s: "👁️"}] },
-  { cat: "Future Alignment & Dealbreakers", q: "49. Disagreements handling in public?", opts: [{t: "Private Always", v: 3, s: "🤫"}, {t: "Public Arguments", v: 0, s: "📢"}] },
-  { cat: "Future Alignment & Dealbreakers", q: "50. Overall intuitive compatibility feel?", opts: [{t: "Strong Compatibility", v: 3, s: "🌟"}, {t: "Moderate Fit", v: 1, s: "🔍"}] }
+  { q: "1. What is your ideal Age Gap?", opts: [{t: "1-3 Years Older", p: 1, s: "👦"}, {t: "3-5 Years Older", p: 2, s: "👨"}, {t: "Exact Same Age", p: 3, s: "🧑‍🤝‍🧑"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "2. Caste and Religion expectations?", opts: [{t: "Exact Same Caste & Religion", p: 6, s: "🕌/🛕"}, {t: "Same Religion, Any Caste", p: 2, s: "🕊️"}, {t: "Different Religion OK", p: 1, s: "🌍"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "3. What should be his Job Status?", opts: [{t: "Government Job", p: 6, s: "🏛️"}, {t: "Established Business", p: 4, s: "🏢"}, {t: "Private Sector", p: 1, s: "💻"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "4. Expected Salary per month?", opts: [{t: "1 Lakh+ (Highest)", p: 6, s: "💰"}, {t: "50k - 1 Lakh", p: 3, s: "💵"}, {t: "30k - 50k", p: 1, s: "🪙"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "5. Preferred Height Difference?", opts: [{t: "7-8+ inches taller than me", p: 4, s: "🦒"}, {t: "3-5 inches taller", p: 2, s: "🧍‍♂️"}, {t: "1-2 inches taller", p: 1, s: "📏"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "6. Location / Distance from your home?", opts: [{t: "Within 50-100 km", p: 4, s: "🏡"}, {t: "Same State", p: 2, s: "🗺️"}, {t: "Anywhere in India", p: 1, s: "🇮🇳"}, {t: "Doesn't Matter (Anywhere)", p: 0, s: "🤷‍♀️"}] },
+  { q: "7. Stance on Animals / Pets?", opts: [{t: "Must be a huge Animal Lover", p: 2, s: "🐕"}, {t: "Strictly NO pets allowed", p: 2, s: "🚫🐈"}, {t: "Okay with pets", p: 1, s: "🐾"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "8. Smoking and Drinking habits?", opts: [{t: "Strict Non-Smoker / Non-Drinker", p: 4, s: "🚫🍺"}, {t: "Occasional Drink is OK", p: 1, s: "🥂"}, {t: "Regular Party-goer", p: 2, s: "🎉"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "9. Anger and Decision Making?", opts: [{t: "Always calm, never gets angry", p: 4, s: "🧘"}, {t: "Strict but rational", p: 1, s: "⚖️"}, {t: "Emotional / Quick tempered", p: 2, s: "🔥"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "10. His Cooking Skills?", opts: [{t: "Expert Chef (Cooks daily)", p: 4, s: "👨‍🍳"}, {t: "Knows basic survival cooking", p: 2, s: "🍳"}, {t: "Can't cook at all", p: 1, s: "🍽️"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "11. Hobbies & Free Time?", opts: [{t: "Must share all my hobbies exactly", p: 3, s: "👯"}, {t: "Active & Outdoor hobbies", p: 1, s: "⛰️"}, {t: "Indoor, Movies & Gaming", p: 1, s: "🎮"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "12. What about his Friend Circle?", opts: [{t: "Extrovert / Huge social circle", p: 2, s: "🗣️"}, {t: "Small, tight-knit group", p: 1, s: "🛡️"}, {t: "Introvert / Barely any friends", p: 3, s: "👤"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "13. Who is his priority: Wife vs Mother?", opts: [{t: "Wife is always Number 1", p: 6, s: "👑"}, {t: "Balances both perfectly", p: 2, s: "⚖️"}, {t: "Mother is Number 1", p: 1, s: "👵"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "14. Long Term Settlement Goal?", opts: [{t: "Move Abroad permanently", p: 5, s: "✈️"}, {t: "Settle in a Metro City", p: 2, s: "🏙️"}, {t: "Simple life in hometown", p: 1, s: "🏘️"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "15. Kids Timing?", opts: [{t: "Child-free forever (No kids)", p: 4, s: "🛑👶"}, {t: "Immediately after marriage", p: 2, s: "🍼"}, {t: "After 2-3 years of marriage", p: 1, s: "⏳"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "16. Compromise Nature in arguments?", opts: [{t: "He must ALWAYS compromise", p: 6, s: "🙇‍♂️"}, {t: "Mutual 50/50 compromise", p: 2, s: "🤝"}, {t: "I will compromise more", p: 0, s: "🙋‍♀️"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "17. Past Relationships / History?", opts: [{t: "Zero history (Never dated anyone)", p: 5, s: "✨"}, {t: "Still friends with his Ex", p: 4, s: "📱"}, {t: "1-2 pasts OK but moved on", p: 1, s: "🚶"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "18. Childhood & Family Background?", opts: [{t: "Rich / Privileged upbringing", p: 5, s: "💎"}, {t: "Middle class family", p: 1, s: "🚗"}, {t: "Self-made from struggle", p: 1, s: "🧗‍♂️"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "19. Similar Interests / Personality?", opts: [{t: "Exactly similar to me in everything", p: 3, s: "🪞"}, {t: "Opposites attract (Very different)", p: 1, s: "🧲"}, {t: "A few common interests", p: 1, s: "🧩"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "20. Travel Enthusiast?", opts: [{t: "Frequent International Trips", p: 4, s: "🌏"}, {t: "Occasional local/domestic trips", p: 1, s: "🚗"}, {t: "Homebody (Rarely travels)", p: 1, s: "🛋️"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "21. Family Type?", opts: [{t: "Nuclear (Live completely separate)", p: 5, s: "🚪"}, {t: "Joint Family", p: 1, s: "👨‍👩‍👧‍👦"}, {t: "Open to either scenario", p: 1, s: "🔄"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "22. Household Responsibility Sharing?", opts: [{t: "He does 50% of ALL daily chores", p: 4, s: "🧹"}, {t: "He helps out on weekends", p: 1, s: "🧺"}, {t: "Traditional roles (I do housework)", p: 1, s: "📌"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "23. Behaviour & Love Language?", opts: [{t: "Highly romantic and expressive", p: 3, s: "🌹"}, {t: "Practical & Acts of Service", p: 1, s: "🛠️"}, {t: "Shy and introverted", p: 1, s: "🤫"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "24. Bad Habits or Addictions?", opts: [{t: "Zero bad habits whatsoever", p: 4, s: "😇"}, {t: "Minor harmless habits are OK", p: 1, s: "🤏"}, {t: "Dealing with past addictions", p: 2, s: "🩹"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] },
+  { q: "25. Views on Incompatibility / Divorce?", opts: [{t: "Marriage is forever (No divorce)", p: 2, s: "🔒"}, {t: "Open to peaceful divorce if needed", p: 3, s: "📝"}, {t: "Therapy and try to fix it first", p: 1, s: "🛋️"}, {t: "Doesn't Matter", p: 0, s: "🤷‍♀️"}] }
 ];
 
 const answers = {};
 
 function renderQuestions() {
   const container = document.getElementById('questions-container');
-  let currentCat = '';
 
   questions.forEach((q, idx) => {
-    if (q.cat !== currentCat) {
-      currentCat = q.cat;
-      const catHeader = document.createElement('div');
-      catHeader.className = 'category-title';
-      catHeader.innerText = currentCat;
-      container.appendChild(catHeader);
-    }
-
     const card = document.createElement('div');
     card.className = 'q-card';
-    card.style.background = themes[idx % themes.length]; // Assign different dynamic gradient
+    card.style.background = themes[idx]; 
     
     const title = document.createElement('div');
     title.className = 'q-text';
     title.innerText = q.q;
     card.appendChild(title);
 
-    const optGrid = document.createElement('div');
-    optGrid.className = 'options';
+    const optContainer = document.createElement('div');
+    optContainer.className = 'options';
 
     q.opts.forEach(opt => {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'btn-opt';
-      btn.innerHTML = `<span>${opt.s}</span> <span>${opt.t}</span>`;
-      btn.onclick = () => selectOption(idx, opt.v, btn, optGrid);
-      optGrid.appendChild(btn);
+      btn.innerHTML = `<span class="sticker">${opt.s}</span> <span>${opt.t}</span>`;
+      btn.onclick = () => selectOption(idx, opt.p, btn, optContainer);
+      optContainer.appendChild(btn);
     });
 
-    card.appendChild(optGrid);
+    card.appendChild(optContainer);
     container.appendChild(card);
   });
 }
 
-function selectOption(qIdx, val, selectedBtn, parentGrid) {
-  answers[qIdx] = val;
-  Array.from(parentGrid.children).forEach(btn => btn.classList.remove('selected'));
-  selectedBtn.classList.add('selected');
+function selectOption(qIdx, penaltyValue, selectedBtn, parentContainer) {
+  answers[qIdx] = penaltyValue;
+  
+  // Update button styles
+  Array.from(parentContainer.children).forEach(btn => {
+    btn.classList.remove('selected', 'selected-neutral');
+  });
+  
+  if (penaltyValue === 0) {
+    selectedBtn.classList.add('selected-neutral'); // Blue for Doesn't Matter
+  } else {
+    selectedBtn.classList.add('selected'); // White for strict choices
+  }
 
-  // Update Progress Bar
-  const answeredCount = Object.keys(answers).length;
-  document.getElementById('progress-text').innerText = `Progress: ${answeredCount} / ${questions.length}`;
-  document.getElementById('progress-fill').style.width = `${(answeredCount / questions.length) * 100}%`;
+  updateLiveStats();
 }
 
-function calculateResults() {
+function updateLiveStats() {
   const answeredCount = Object.keys(answers).length;
-  if (answeredCount < questions.length) {
-    alert(`Please complete all questions before submitting. (${answeredCount}/${questions.length} answered)`);
+  let totalPenalty = 0;
+  
+  Object.values(answers).forEach(p => { totalPenalty += p; });
+  
+  // Calculate probability (min 1%)
+  let probability = Math.max(1, 100 - totalPenalty);
+  
+  document.getElementById('progress-text').innerText = `Answered: ${answeredCount} / 25`;
+  
+  const probText = document.getElementById('prob-text');
+  const probFill = document.getElementById('prob-fill');
+  
+  probText.innerText = `Match Probability: ${probability}%`;
+  probFill.style.width = `${probability}%`;
+
+  // Color changing based on probability
+  if(probability >= 70) {
+    probText.style.color = '#10b981'; // Green
+    probFill.style.background = 'linear-gradient(90deg, #10b981, #38bdf8)';
+  } else if (probability >= 40) {
+    probText.style.color = '#fbbf24'; // Yellow
+    probFill.style.background = 'linear-gradient(90deg, #fbbf24, #f59e0b)';
+  } else {
+    probText.style.color = '#ef4444'; // Red
+    probFill.style.background = 'linear-gradient(90deg, #ef4444, #dc2626)';
+  }
+}
+
+function calculateFinalResults() {
+  const answeredCount = Object.keys(answers).length;
+  if (answeredCount < 25) {
+    alert(`Please complete all 25 questions before submitting. (${answeredCount}/25 answered)`);
     return;
   }
 
-  let totalEarned = 0;
-  let maxPossible = questions.reduce((acc, q) => acc + Math.max(...q.opts.map(o => o.v)), 0);
+  let totalPenalty = 0;
+  Object.values(answers).forEach(p => totalPenalty += p);
+  let finalProbability = Math.max(1, 100 - totalPenalty);
 
-  Object.values(answers).forEach(val => totalEarned += val);
+  document.getElementById('final-prob').innerText = `${finalProbability}%`;
+  
+  let verdict, desc, color;
+  if (finalProbability >= 80) {
+    verdict = "Very Easy to Find!";
+    desc = "You are highly flexible! By choosing 'Doesn't Matter' on strict requirements, your pool of potential partners is massive.";
+    color = "#10b981";
+  } else if (finalProbability >= 50) {
+    verdict = "Realistic Expectations";
+    desc = "You have standard boundaries but remain open-minded. You have a very good chance of finding a partner who meets these criteria.";
+    color = "#38bdf8";
+  } else if (finalProbability >= 20) {
+    verdict = "High Standards (Rare)";
+    desc = "You have very specific requirements! While not impossible, finding someone who perfectly checks all these boxes will require patience.";
+    color = "#fbbf24";
+  } else {
+    verdict = "Ultra-Rare (Unicorn) 🦄";
+    desc = "Your standards are incredibly strict. Statistically, this specific combination of salary, job, height, and habits exists in less than 5% of the population. Good luck!";
+    color = "#ef4444";
+  }
 
-  let matchPercentage = Math.round((totalEarned / maxPossible) * 100);
+  const scoreBadge = document.getElementById('final-prob');
+  scoreBadge.style.color = color;
+  scoreBadge.style.textShadow = `0 0 20px ${color}66`;
   
-  // Dynamic Rarity tier calculation
-  let rarityTier;
-  if (matchPercentage >= 90) rarityTier = (100 - matchPercentage + 0.1).toFixed(1);
-  else if (matchPercentage >= 75) rarityTier = (100 - matchPercentage + 1).toFixed(1);
-  else rarityTier = (100 - matchPercentage).toFixed(1);
-
-  document.getElementById('match-score').innerText = `${matchPercentage}% Match`;
-  document.getElementById('rarity-score').innerText = `Candidate Rarity: Top ${rarityTier}%`;
-  
-  let desc = "";
-  if (matchPercentage >= 85) desc = "Exceptional compatibility! This profile represents an exceptionally rare match across core values, lifestyle, and life vision.";
-  else if (matchPercentage >= 70) desc = "Strong compatibility! Minor differences exist, but they can easily be navigated through open communication.";
-  else desc = "Moderate alignment. Notable differences exist across core habits or long-term priorities.";
-  
+  document.getElementById('final-verdict').innerText = verdict;
+  document.getElementById('final-verdict').style.color = color;
   document.getElementById('result-desc').innerText = desc;
+  
   document.getElementById('result-modal').style.display = 'flex';
 }
 
@@ -245,6 +262,7 @@ function closeModal() {
   document.getElementById('result-modal').style.display = 'none';
 }
 
+// Initialize
 renderQuestions();
 </script>
 
